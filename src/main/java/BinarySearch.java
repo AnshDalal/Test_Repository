@@ -1,49 +1,72 @@
+import java.util.Objects;
+
 /**
- * Utility for searching a value in a sorted array using the binary search algorithm.
+ * Entry point for searching values in sorted integer arrays.
+ * <p>
+ * Responsibilities are delegated as follows:
+ * <ul>
+ *   <li>{@link SortedArrayValidator} — input validation</li>
+ *   <li>{@link BinarySearchAlgorithm} — search algorithm</li>
+ *   <li>{@link BinarySearch} — orchestration and public API</li>
+ * </ul>
  */
-public class BinarySearch {
+public final class BinarySearch {
 
-    /** Returned when the target value is not present in the array. */
-    private static final int NOT_FOUND = -1;
+    /** Sentinel value returned when the target is not present in the array. */
+    public static final int NOT_FOUND = -1;
 
-    private BinarySearch() {
-        // Utility class; prevent instantiation.
+    private static final BinarySearch DEFAULT_INSTANCE = new BinarySearch(new SortedArrayValidator());
+
+    private final SortedArrayValidator validator;
+
+    /**
+     * Creates a {@code BinarySearch} with the default validator.
+     */
+    public BinarySearch() {
+        this(new SortedArrayValidator());
+    }
+
+    /**
+     * Creates a {@code BinarySearch} with a custom validator.
+     * <p>
+     * Package-private for unit testing with test doubles.
+     *
+     * @param validator validates array preconditions before searching
+     */
+    BinarySearch(SortedArrayValidator validator) {
+        this.validator = Objects.requireNonNull(validator, "validator must not be null");
+    }
+
+    /**
+     * Searches for {@code target} in a sorted array using the shared default instance.
+     *
+     * @param sortedArray array sorted in non-decreasing order; must not be {@code null}
+     * @param target      value to locate
+     * @return the index of {@code target} if found; otherwise {@link #NOT_FOUND}
+     * @throws NullPointerException     if {@code sortedArray} is {@code null}
+     * @throws IllegalArgumentException if {@code sortedArray} is not sorted in ascending order
+     * @see #search(int[], int)
+     */
+    public static int binarySearch(int[] sortedArray, int target) {
+        return DEFAULT_INSTANCE.search(sortedArray, target);
     }
 
     /**
      * Searches for {@code target} in a sorted array.
      *
-     * @param sortedArray array sorted in ascending order
+     * @param sortedArray array sorted in non-decreasing order; must not be {@code null}
      * @param target      value to locate
      * @return the index of {@code target} if found; otherwise {@link #NOT_FOUND}
+     * @throws NullPointerException     if {@code sortedArray} is {@code null}
+     * @throws IllegalArgumentException if {@code sortedArray} is not sorted in ascending order
      */
-    public static int binarySearch(int[] sortedArray, int target) {
-        int lowIndex = 0;
-        int highIndex = sortedArray.length - 1;
+    public int search(int[] sortedArray, int target) {
+        validator.requireSorted(sortedArray);
 
-        while (lowIndex <= highIndex) {
-            // Avoids integer overflow compared to (lowIndex + highIndex) / 2
-            int midIndex = lowIndex + (highIndex - lowIndex) / 2;
-            int midValue = sortedArray[midIndex];
-
-            if (midValue == target) {
-                return midIndex;
-            }
-
-            if (midValue < target) {
-                lowIndex = midIndex + 1;
-            } else {
-                highIndex = midIndex - 1;
-            }
+        if (sortedArray.length == 0) {
+            return NOT_FOUND;
         }
 
-        return NOT_FOUND;
-    }
-
-    public static void main(String[] args) {
-        int[] sortedNumbers = {2, 4, 6, 8, 10, 12, 14};
-        int searchTarget = 10;
-
-        System.out.println(binarySearch(sortedNumbers, searchTarget));
+        return BinarySearchAlgorithm.search(sortedArray, target);
     }
 }

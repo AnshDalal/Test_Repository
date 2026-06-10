@@ -51,6 +51,22 @@ class BinarySearchTest {
     }
 
     @Test
+    void nullArrayThrowsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> BinarySearch.binarySearch(null, 5));
+    }
+
+    @Test
+    void unsortedArrayThrowsIllegalArgumentException() {
+        int[] unsorted = {1, 5, 3, 7, 9};
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> BinarySearch.binarySearch(unsorted, 5));
+
+        assertTrue(exception.getMessage().contains("sorted"));
+    }
+
+    @Test
     void duplicateValuesReturnsValidIndex() {
         int[] withDuplicates = {1, 2, 2, 2, 3, 4};
 
